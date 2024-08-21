@@ -16,7 +16,6 @@ let tronWeb = null;
 let smartAddress = "";
 const sleep = require('sleep-promise');
 
-
 startHttpServer();
 async function startHttpServer() {
 
@@ -51,6 +50,10 @@ async function startHttpServer() {
                     case "check" :
                         await checkToken(req,res,U.query);
                         break; 
+
+                    case "toggleVpnStatus":
+                        await toggleVpnStatus(req, res, U.query);
+                        break;
                     default :
                         logger.info("pathname not found !", U.pathname);
                 }
@@ -251,6 +254,27 @@ async function listUser(req, res, query){
 
 
  
+async function toggleVpnStatus(req, res, query) {
+  let filePath = "/root/wg0-client-" + query.publicKey + ".conf";
+  
+  if (fs.existsSync(filePath)) {
+      let fileContent = fs.readFileSync(filePath, 'utf8');
+      
+      if (query.status === 'enable') {
+          fileContent = fileContent.replace(/#Enabled\s*=\s*false/g, '#Enabled = true');
+      } else if (query.status === 'disable') {
+          fileContent = fileContent.replace(/#Enabled\s*=\s*true/g, '#Enabled = false');
+      } else {
+          res.write('Invalid status. Use "enable" or "disable".');
+          return;
+      }
+      
+      fs.writeFileSync(filePath, fileContent, 'utf8');
+      res.write(`Configuration for ${query.publicKey} has been ${query.status}d.`);
+  } else {
+      res.write('Configuration file not found.');
+  }
+}
 
 
 
