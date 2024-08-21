@@ -52,7 +52,15 @@ chmod +x install.sh
 ./install.sh
 
 or
+sudo apt install nodejs npm -y
 
+
+sudo npm install -g pm2
 
 pm2 start main.js
 pm2 list
+
+
+sudo mkdir -p /usr/local/bin/udp2raw-tunnel
+sudo mv /home/jwpn/udp2raw-tunnel/udp2raw /usr/local/bin/udp2raw-tunnel/
+sudo systemctl status udp2raw
