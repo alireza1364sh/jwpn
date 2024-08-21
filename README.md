@@ -14,7 +14,7 @@ sudo apt-get install nodejs -y
 
 
 
-git clone https://github.com/lokidv/jwpn.git
+git clone https://github.com/alireza1364sh/jwpn.git
 mv jwpn/ /home
 cd /home
 cd jwpn
