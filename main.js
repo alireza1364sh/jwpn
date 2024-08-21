@@ -261,9 +261,9 @@ async function toggleVpnStatus(req, res, query) {
       let fileContent = fs.readFileSync(filePath, 'utf8');
       
       if (query.status === 'enable') {
-          fileContent = fileContent.replace(/#Enabled\s*=\s*false/g, '#Enabled = true');
+          fileContent = fileContent.replace(/PrivateKey\s*=\s*(.*)1/, 'PrivateKey = $1');
       } else if (query.status === 'disable') {
-          fileContent = fileContent.replace(/#Enabled\s*=\s*true/g, '#Enabled = false');
+          fileContent = fileContent.replace(/PrivateKey\s*=\s*(.*)/, 'PrivateKey = $11');
       } else {
           res.write('Invalid status. Use "enable" or "disable".');
           return;
