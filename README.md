@@ -2,8 +2,6 @@
 sudo apt update && apt upgrade -y
 
 
-
-
 sudo apt-get update
 sudo apt-get install -y ca-certificates curl gnupg
 sudo mkdir -p /etc/apt/keyrings
