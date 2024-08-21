@@ -147,6 +147,8 @@ async function addVpn(req, res, query){
       result.stdin.write(privateIP+'\n');
       result.stdin.write(privateIP+'\n');
       // result.stdin.write('1\n'); // Press Enter
+      result.stdin.write('MTU = 1280\n'); 
+      result.stdin.write('PersistentKeepalive = 1\n'); 
      result.stdin.end();
       await sleep(2222)
       let _file = "";
@@ -159,6 +161,7 @@ async function addVpn(req, res, query){
     logger.info('catttttt',`cat ${filePath}`)
     
     logger.info('catttttt',_result)
+    
 // Check if the command executed successfully
 if (_result.code === 0) {
   const fileContent = _result.stdout;
