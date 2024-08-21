@@ -128,86 +128,55 @@ async function checkToken(req,res,query){
     }
 }
 
-async function addVpn(req, res, query){
-
-    let myip =await findIp()
-    await sleep(2222)
-    await logger.info('my ip is here', privateIP)
+async function addVpn(req, res, query) {
+  let myip = await findIp();
+  await sleep(2222);
+  logger.info('my ip is here', privateIP);
   
-  let file_is_exist = await  fs.existsSync("/root/wg0-client-"+query.publicKey+".conf")
-      logger.info('1',file_is_exist)
-      
-      
+  let file_is_exist = await fs.existsSync("/root/wg0-client-" + query.publicKey + ".conf");
+  logger.info('1', file_is_exist);
 
   if (!file_is_exist) {
-      
-      const result =await shell.exec('/home/jwpn/wireguard-install.sh', { async: true });
+      const result = shell.exec('/home/jwpn/wireguard-install.sh', { async: true });
       result.stdin.write('1\n'); // Enter 1
-      result.stdin.write(query.publicKey+'\n'); // Enter name 'ali'
-      result.stdin.write(privateIP+'\n');
-      result.stdin.write(privateIP+'\n');
-      // result.stdin.write('1\n'); // Press Enter
-      result.stdin.write('MTU = 1280\n'); 
-      result.stdin.write('PersistentKeepalive = 1\n'); 
-     result.stdin.end();
-      await sleep(2222)
-      let _file = "";
-       const filePath = "/root/wg0-client-"+query.publicKey+".conf"; // Replace with the actual file path
-         let file_is_existss = await  fs.existsSync("/root/wg0-client-"+query.publicKey+".conf")
-          logger.info('2',file_is_existss)
-// Read the file using ShellJS cat command
-    const _result =await shell.exec('cat '+filePath+'\n');
-    
-    logger.info('catttttt',`cat ${filePath}`)
-    
-    logger.info('catttttt',_result)
-    
-// Check if the command executed successfully
-if (_result.code === 0) {
-  const fileContent = _result.stdout;
+      result.stdin.write(query.publicKey + '\n'); // Enter public key
+      result.stdin.write(privateIP + '\n'); // Enter IP
+      result.stdin.write(privateIP + '\n'); // Confirm IP
+      result.stdin.end();
 
-  // Print the file content
-  console.log(fileContent);
-         res.write(fileContent)
- 
-}else{
-    res.write('hello dfdsf')
-}  
+      await result.on('close', async () => {
+          await sleep(2000);
+
+          let filePath = "/root/wg0-client-" + query.publicKey + ".conf";
+          if (fs.existsSync(filePath)) {
+              // در اینجا تنظیمات اضافی به نتیجه اضافه می‌شوند
+              let fileContent = fs.readFileSync(filePath, 'utf8');
+              fileContent = fileContent.replace(
+                  '[Interface]',
+                  '[Interface]\nMTU = 1280'
+              );
+              fileContent = fileContent.replace(
+                  '[Peer]',
+                  '[Peer]\nPersistentKeepalive = 1'
+              );
+              fs.writeFileSync(filePath, fileContent, 'utf8');
+              
+              res.write(fileContent);
+          } else {
+              res.write('فایل پس از ایجاد موجود نیست');
+          }
+      });
 
   } else {
-        await sleep(2000)
-      let _file = "";
-       const filePath = "/root/wg0-client-"+query.publicKey+".conf"; // Replace with the actual file path
-         let file_is_existss = await  fs.existsSync("/root/wg0-client-"+query.publicKey+".conf")
-          logger.info('2',file_is_existss)
-// Read the file using ShellJS cat command
-    const _result =await shell.exec('cat '+filePath+'\n');
-    
-    logger.info('catttttt',`cat ${filePath}`)
-    
-    logger.info('catttttt',_result)
-// Check if the command executed successfully
-if (_result.code === 0) {
-  const fileContent = _result.stdout;
-
-  // Print the file content
-  console.log(fileContent);
-         res.write(fileContent)
- 
-}
-      logger.info('oor is here')
-       
-
+      let filePath = "/root/wg0-client-" + query.publicKey + ".conf";
+      if (fs.existsSync(filePath)) {
+          let fileContent = fs.readFileSync(filePath, 'utf8');
+          res.write(fileContent);
+      } else {
+          res.write('فایل موجود نیست');
+      }
   }
-
-
-  
-
-    
 }
-
-
-
 
 
 
