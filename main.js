@@ -171,45 +171,66 @@ async function listUser(req, res, query) {
 }
 
 async function enableVpn(req, res, query) {
-    const filePath = `/root/wg0-client-${query.publicKey}.conf`;
+  const filePath = `/root/wg0-client-${query.publicKey}.conf`;
 
-    if (fs.existsSync(filePath)) {
-        let fileContent = fs.readFileSync(filePath, 'utf8');
-        const regex = /^PrivateKey\s*=\s*(.*)$/m;
-        const match = regex.exec(fileContent);
+  if (fs.existsSync(filePath)) {
+      let fileContent = fs.readFileSync(filePath, 'utf8');
+      const regexPrivateKey = /^PrivateKey\s*=\s*(.*)$/m;
+      const regexAddress = /^Address\s*=\s*(.*)$/m;
+      const privateKeyMatch = regexPrivateKey.exec(fileContent);
+      const addressMatch = regexAddress.exec(fileContent);
 
-        if (match && match[1].endsWith("1")) {
-            const activeKey = match[1].slice(0, -1);
-            fileContent = fileContent.replace(match[1], activeKey);
-            fs.writeFileSync(filePath, fileContent, 'utf8');
-            logger.info("VPN configuration activated for key:", query.publicKey);
-            res.write("VPN configuration enabled.");
-        } else {
-            res.write("VPN configuration is already active.");
-        }
-    } else {
-        res.write("Configuration file not found.");
-    }
+      if (privateKeyMatch && privateKeyMatch[1].endsWith("1")) {
+          // Change the private key to active
+          const activeKey = privateKeyMatch[1].slice(0, -1);
+          fileContent = fileContent.replace(privateKeyMatch[1], activeKey);
+
+          // Change the Address line to active
+          if (addressMatch) {
+              const activeAddress = `10.66.66.${activeKey.substring(0, 2)}/32`;
+              fileContent = fileContent.replace(addressMatch[1], activeAddress);
+          }
+
+          fs.writeFileSync(filePath, fileContent, 'utf8');
+          logger.info("VPN configuration activated for key:", query.publicKey);
+          res.write("VPN configuration enabled.");
+      } else {
+          res.write("VPN configuration is already active.");
+      }
+  } else {
+      res.write("Configuration file not found.");
+  }
 }
 
+
 async function disableVpn(req, res, query) {
-    const filePath = `/root/wg0-client-${query.publicKey}.conf`;
+  const filePath = `/root/wg0-client-${query.publicKey}.conf`;
 
-    if (fs.existsSync(filePath)) {
-        let fileContent = fs.readFileSync(filePath, 'utf8');
-        const regex = /^PrivateKey\s*=\s*(.*)$/m;
-        const match = regex.exec(fileContent);
+  if (fs.existsSync(filePath)) {
+      let fileContent = fs.readFileSync(filePath, 'utf8');
+      const regexPrivateKey = /^PrivateKey\s*=\s*(.*)$/m;
+      const regexAddress = /^Address\s*=\s*(.*)$/m;
+      const privateKeyMatch = regexPrivateKey.exec(fileContent);
+      const addressMatch = regexAddress.exec(fileContent);
 
-        if (match && !match[1].endsWith("1")) {
-            const inactiveKey = match[1] + "1";
-            fileContent = fileContent.replace(match[1], inactiveKey);
-            fs.writeFileSync(filePath, fileContent, 'utf8');
-            logger.info("VPN configuration deactivated for key:", query.publicKey);
-            res.write("VPN configuration disabled.");
-        } else {
-            res.write("VPN configuration is already inactive.");
-        }
-    } else {
-        res.write("Configuration file not found.");
-    }
+      if (privateKeyMatch && !privateKeyMatch[1].endsWith("1")) {
+          // Change the private key to inactive
+          const inactiveKey = privateKeyMatch[1] + "1";
+          fileContent = fileContent.replace(privateKeyMatch[1], inactiveKey);
+
+          // Change the Address line to inactive
+          if (addressMatch) {
+              const inactiveAddress = `11.66.66.${inactiveKey.substring(0, 2)}/32`;
+              fileContent = fileContent.replace(addressMatch[1], inactiveAddress);
+          }
+
+          fs.writeFileSync(filePath, fileContent, 'utf8');
+          logger.info("VPN configuration deactivated for key:", query.publicKey);
+          res.write("VPN configuration disabled.");
+      } else {
+          res.write("VPN configuration is already inactive.");
+      }
+  } else {
+      res.write("Configuration file not found.");
+  }
 }
