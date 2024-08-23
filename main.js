@@ -46,14 +46,15 @@ async function startHttpServer() {
                      case "list" :
                         await listUser(req, res, U.query);
                         break;
-
                     case "check" :
                         await checkToken(req,res,U.query);
                         break; 
-
-                    case "toggleVpnStatus":
-                        await toggleVpnStatus(req, res, U.query);
-                        break;
+                        case "enableVpn":
+                          await enableVpn(req, res, U.query);
+                          break;
+                      case "disableVpn":
+                          await disableVpn(req, res, U.query);
+                          break;
                     default :
                         logger.info("pathname not found !", U.pathname);
                 }
@@ -251,31 +252,6 @@ async function listUser(req, res, query){
   await res.write(_listuser)
 }
  
-
-
- 
-async function toggleVpnStatus(req, res, query) {
-  let filePath = "/root/wg0-client-" + query.publicKey + ".conf";
-  
-  if (fs.existsSync(filePath)) {
-      let fileContent = fs.readFileSync(filePath, 'utf8');
-      
-      if (query.status === 'enable') {
-          fileContent = fileContent.replace(/PrivateKey\s*=\s*(.*)1/, 'PrivateKey = $1');
-      } else if (query.status === 'disable') {
-          fileContent = fileContent.replace(/PrivateKey\s*=\s*(.*)/, 'PrivateKey = $11');
-      } else {
-          res.write('Invalid status. Use "enable" or "disable".');
-          return;
-      }
-      
-      fs.writeFileSync(filePath, fileContent, 'utf8');
-      res.write(`Configuration for ${query.publicKey} has been ${query.status}d.`);
-  } else {
-      res.write('Configuration file not found.');
-  }
-}
-
 
 
 
